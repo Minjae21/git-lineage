@@ -1,0 +1,4 @@
+opensearch-py
+requests
+gitpython
+boto3
