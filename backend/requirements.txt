@@ -1,4 +1,6 @@
-opensearch-py
-requests
-gitpython
 boto3
+tree_sitter
+tree_sitter_languages
+requests
+tqdm
+numpy

@@ -1,5 +1,30 @@
-venv
-__pycache__
-frontend
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 .env
+venv/
+.venv/
 config.py
+
+# Node / JS
+node_modules/
+
+# Build / output
+dist/
+build/
+
+# Data
+data/
+*.json
+*.npy
+
+# Temp files
+*.log
+*.tmp
+*.swp
+
+# IDEs
+.vscode/
+.idea/
