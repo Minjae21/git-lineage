@@ -12,8 +12,16 @@ REGION = "us-east-1"
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL_ID", "amazon.titan-embed-text-v1")
 LLM_MODEL = os.getenv("LLM_MODEL_ID", "us.anthropic.claude-3-7-sonnet-20250219-v1:0")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+DYNAMODB_TABLE = os.getenv("DYNAMODB_TABLE", "git-lineage-repos")
 
 bedrock = boto3.client("bedrock-runtime", region_name=REGION)
+dynamodb = boto3.resource("dynamodb", region_name=REGION)
+
+try:
+    table = dynamodb.Table(DYNAMODB_TABLE)
+except:
+    table = None
+    print(f"Warning: DynamoDB table {DYNAMODB_TABLE} not found. Using in-memory storage.")
 
 # Constants
 MAX_COMMITS = 50
@@ -185,7 +193,70 @@ def process_repository(repo_url, github_token):
         print(traceback.format_exc())
         raise
 
+def save_repo_data(repo_url, data):
+    """Save repository data to DynamoDB or memory."""
+    if table:
+        try:
+            # Convert data to DynamoDB format
+            item = {
+                'repo_url': repo_url,
+                'data': json.dumps(data),
+                'timestamp': str(boto3.client('sts').get_caller_identity()['UserId'])
+            }
+            table.put_item(Item=item)
+            print(f"Saved data to DynamoDB for {repo_url}")
+        except Exception as e:
+            print(f"Error saving to DynamoDB: {e}")
+            REPO_CACHE[repo_url] = data
+    else:
+        REPO_CACHE[repo_url] = data
+
+def get_repo_data(repo_url):
+    """Get repository data from DynamoDB or memory."""
+    if table:
+        try:
+            response = table.get_item(Key={'repo_url': repo_url})
+            if 'Item' in response:
+                data = json.loads(response['Item']['data'])
+                print(f"Retrieved data from DynamoDB for {repo_url}")
+                return data
+        except Exception as e:
+            print(f"Error reading from DynamoDB: {e}")
+
+    # Fallback to memory cache
+    return REPO_CACHE.get(repo_url)
+
 def build_context(repo_data):
+    """Build context string from repository data."""
+    context_parts = []
+
+    # Repository info
+    if repo_data.get('details'):
+        details = repo_data['details']
+        context_parts.append(f"Repository: {repo_data.get('repo', 'unknown')}")
+        if details.get('description'):
+            context_parts.append(f"Description: {details['description']}")
+        if details.get('language'):
+            context_parts.append(f"Primary Language: {details['language']}")
+        context_parts.append(f"Stars: {details.get('stars', 0)}, Forks: {details.get('forks', 0)}")
+
+    # Recent commits
+    if repo_data.get('commits'):
+        commits_text = "\n".join([
+            f"- {c['message'][:100]} (by {c['author']})"
+            for c in repo_data['commits'][:10]
+        ])
+        context_parts.append(f"\nRecent Commits:\n{commits_text}")
+
+    # Recent PRs
+    if repo_data.get('prs'):
+        prs_text = "\n".join([
+            f"- PR #{p['number']}: {p['title'][:100]} ({p['state']})"
+            for p in repo_data['prs'][:10]
+        ])
+        context_parts.append(f"\nRecent Pull Requests:\n{prs_text}")
+
+    return "\n\n".join(context_parts)
     """Build context string from repository data."""
     context_parts = []
 
@@ -260,8 +331,8 @@ def lambda_handler(event, context):
             print(f"Processing repo: {repo_url}")
             result = process_repository(repo_url, GITHUB_TOKEN)
 
-            # Cache the result
-            REPO_CACHE[repo_url] = result
+            # Save the result to persistent storage
+            save_repo_data(repo_url, result)
 
             return {
                 "statusCode": 200,
@@ -280,26 +351,28 @@ def lambda_handler(event, context):
             print(f"Question: {text}")
             print(f"Repo URL: {repo_url}")
 
-            # Get cached repo data
-            repo_data = REPO_CACHE.get(repo_url, {})
+            # Get repo data from persistent storage
+            repo_data = get_repo_data(repo_url)
+
+            if not repo_data:
+                return {
+                    "statusCode": 400,
+                    "headers": headers,
+                    "body": json.dumps({
+                        "answer": "⚠️ Please analyze the repository first by entering its URL before asking questions."
+                    })
+                }
 
             # Build context
-            if repo_data:
-                context = build_context(repo_data)
-                prompt = f"""You are analyzing the GitHub repository: {repo_data.get('repo', 'unknown')}
+            context = build_context(repo_data)
+            prompt = f"""You are analyzing the GitHub repository: {repo_data.get('repo', 'unknown')}
 
 Repository Context:
 {context}
 
 User Question: {text}
 
-Please provide a helpful answer based on the repository context above."""
-            else:
-                prompt = f"""The user is asking about a GitHub repository: {repo_url}
-
-Question: {text}
-
-Please provide a helpful answer. Note: Detailed repository analysis may not be available yet."""
+Based on the repository data above (commits, pull requests, and repository information), please provide a detailed and helpful answer."""
 
             # Call Claude
             payload = {
@@ -321,6 +394,24 @@ Please provide a helpful answer. Note: Detailed repository analysis may not be a
                 "statusCode": 200,
                 "headers": headers,
                 "body": json.dumps({"answer": answer})
+            }
+
+        elif action == "get_data":
+            # Return full repository data for visualization
+            repo_url = body.get("repo_url", "")
+            repo_data = get_repo_data(repo_url)
+
+            if not repo_data:
+                return {
+                    "statusCode": 404,
+                    "headers": headers,
+                    "body": json.dumps({"error": "Repository not found"})
+                }
+
+            return {
+                "statusCode": 200,
+                "headers": headers,
+                "body": json.dumps(repo_data)
             }
 
         elif action == "embed":
