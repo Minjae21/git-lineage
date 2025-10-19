@@ -4,9 +4,11 @@ __pycache__/
 *.pyo
 *.pyd
 .env
+config.py
 venv/
 .venv/
 config.py
+lineage-env/
 
 # Node / JS
 node_modules/
@@ -19,6 +21,7 @@ build/
 data/
 *.json
 *.npy
+*.db
 
 # Temp files
 *.log
