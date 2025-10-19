@@ -3,3 +3,29 @@ __pycache__
 frontend
 .env
 config.py
+venv/
+.venv/
+config.py
+lineage-env/
+
+# Node / JS
+node_modules/
+
+# Build / output
+dist/
+build/
+
+# Data
+data/
+*.json
+*.npy
+*.db
+
+# Temp files
+*.log
+*.tmp
+*.swp
+
+# IDEs
+.vscode/
+.idea/
