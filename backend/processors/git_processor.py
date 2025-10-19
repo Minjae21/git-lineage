@@ -1,9 +1,12 @@
 import os
 import json
+import sys
 import tempfile
 import subprocess
 import requests
 from typing import List, Dict, Optional
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 from config import GITHUB_TOKEN, MAX_COMMITS, MAX_PRS, MAX_COMMITS_PER_PAGE, MAX_PRS_PER_PAGE, DATA_DIR
 
 class GitProcessor:
