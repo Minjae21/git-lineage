@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Lineage Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: #f7f7f8;
+            color: #2d2d2d;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #fff;
+            border-right: 1px solid #e5e5e5;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: #2d2d2d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .new-analysis-btn {
+            background: #10a37f;
+            color: white;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .new-analysis-btn:hover {
+            background: #0d8c6f;
+        }
+
+        .new-analysis-btn:disabled {
+            background: #a0a0a0;
+            cursor: not-allowed;
+        }
+
+        .repo-info {
+            padding: 12px;
+            background: #f7f7f8;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .repo-info.active {
+            display: block;
+        }
+
+        .repo-info .label {
+            color: #6e6e80;
+            font-size: 11px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .repo-info .value {
+            color: #2d2d2d;
+            font-weight: 500;
+            word-break: break-all;
+        }
+
+        .stats-sidebar {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .stat-item {
+            padding: 12px;
+            background: #f7f7f8;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #10a37f;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6e6e80;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll */
+          }
+
+          .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fafafa;
+            padding: 16px;
+            overflow: hidden;
+            border-radius: 12px;
+            margin: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          }
+
+          .messages-container {
+            flex: 1;
+            min-height: 0; /* Critical for flex scroll */
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          }
+
+          .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            word-wrap: break-word;
+          }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            background-color: #e8f0fe;
+            color: #202124;
+            border: 1px solid #c7d2fe;
+          }
+
+          .message.assistant {
+            align-self: flex-start;
+            background-color: #f1f3f4;
+            color: #202124;
+            border: 1px solid #e0e0e0;
+          }
+
+        .message.system {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+            text-align: center;
+            color: #2e7d32;
+            font-size: 14px;
+        }
+
+        .message.error {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
+        }
+
+        .message-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 16px 20px;
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .typing-indicator.active {
+            display: flex;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #6e6e80;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .input-area {
+            padding: 20px;
+            background: #fff;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .input-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            margin-top: 12px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+          }
+
+          .input-container input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 0.95rem;
+          }
+
+          .input-container button {
+            background-color: #47a56b;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+
+          .input-container button:hover {
+            background-color: #358152;
+          }
+
+          .input-container button:active {
+            transform: scale(0.97);
+          }
+
+        .input-container:focus-within {
+            border-color: #10a37f;
+        }
+
+        .input-field {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            padding: 8px;
+            outline: none;
+            resize: none;
+            max-height: 200px;
+            font-family: inherit;
+        }
+
+        .send-button {
+            background: #10a37f;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .send-button:hover:not(:disabled) {
+            background: #0d8c6f;
+        }
+
+        .send-button:disabled {
+            background: #a0a0a0;
+            cursor: not-allowed;
+        }
+
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+            height: 100%;
+        }
+
+        .welcome-screen h1 {
+            font-size: 32px;
+            margin-bottom: 12px;
+            color: #2d2d2d;
+        }
+
+        .welcome-screen p {
+            font-size: 16px;
+            color: #6e6e80;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .example-prompts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .example-prompt {
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .example-prompt:hover {
+            border-color: #10a37f;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .example-prompt .title {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: #2d2d2d;
+        }
+
+        .example-prompt .description {
+            font-size: 13px;
+            color: #6e6e80;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f7f7f8;
+            border-top: 4px solid #10a37f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 16px;
+            color: #2d2d2d;
+            margin-bottom: 8px;
+        }
+
+        .loading-subtext {
+            font-size: 14px;
+            color: #6e6e80;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e5e5e5;
+                height: auto;
+            }
+
+            .app-container {
+                flex-direction: column;
+            }
+
+            .message.user {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="sidebar">
+            <div class="logo">
+                🔍 Git Lineage Analyzer
+            </div>
+
+            <button class="new-analysis-btn" onclick="startNewAnalysis()">
+                + New Analysis
+            </button>
+
+            <div class="repo-info" id="repoInfo">
+                <div class="label">Current Repository</div>
+                <div class="value" id="repoName">-</div>
+            </div>
+
+            <div class="stats-sidebar" id="statsSidebar" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-number" id="commitsCount">-</div>
+                    <div class="stat-label">Commits</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="prsCount">-</div>
+                    <div class="stat-label">Pull Requests</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="functionsCount">-</div>
+                    <div class="stat-label">Functions</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="chat-container">
+                <div class="messages-container" id="messagesContainer">
+                    <div class="welcome-screen" id="welcomeScreen">
+                        <h1>Analyze GitHub Repositories</h1>
+                        <p>Enter a GitHub repository URL to get started with AI-powered insights and analysis</p>
+                    </div>
+
+                    <div class="typing-indicator" id="typingIndicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <div class="input-container">
+                        <textarea
+                            class="input-field"
+                            id="inputField"
+                            placeholder="Enter GitHub repository URL or ask a question..."
+                            rows="1"
+                            onkeydown="handleKeyDown(event)"
+                            oninput="autoResize(this)"
+                        ></textarea>
+                        <button class="send-button" id="sendButton" onclick="handleSend()">
+                            Send
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div class="loading-text">Analyzing Repository</div>
+            <div class="loading-subtext">This may take a few minutes...</div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURATION - UPDATE THESE URLs
+        // ==========================================
+        const API_BASE_URL = "https://yqov2bupm6.execute-api.us-east-1.amazonaws.com/dev";
+
+        let currentRepoUrl = "";
+        let isAnalyzed = false;
+
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                handleSend();
+            }
+        }
+
+        function addMessage(content, type = 'assistant') {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            if (welcomeScreen) {
+                welcomeScreen.remove();
+            }
+
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.insertBefore(messageDiv, document.getElementById('typingIndicator'));
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTyping(show) {
+            const indicator = document.getElementById('typingIndicator');
+            indicator.classList.toggle('active', show);
+            document.getElementById('messagesContainer').scrollTop = document.getElementById('messagesContainer').scrollHeight;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+        }
+
+        function updateStats(stats) {
+            document.getElementById('commitsCount').textContent = stats.commits_count || 0;
+            document.getElementById('prsCount').textContent = stats.prs_count || 0;
+            document.getElementById('functionsCount').textContent = stats.functions_count || 0;
+            document.getElementById('statsSidebar').style.display = 'block';
+        }
+
+        function updateRepoInfo(url) {
+            const match = url.match(/github\.com\/([^\/]+\/[^\/]+)/);
+            if (match) {
+                document.getElementById('repoName').textContent = match[1];
+                document.getElementById('repoInfo').classList.add('active');
+            }
+        }
+
+        function isValidGitHubUrl(url) {
+            return /^https:\/\/github\.com\/[^\/]+\/[^\/]+/.test(url);
+        }
+
+        async function analyzeRepository(repoUrl) {
+            showLoading(true);
+
+            try {
+                // Call the process endpoint to analyze the repository
+                const response = await fetch(`${API_BASE_URL}/process`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'process',
+                        repo_url: repoUrl
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Processing failed: ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('Process result:', result);
+
+                currentRepoUrl = repoUrl;
+                isAnalyzed = true;
+
+                updateRepoInfo(repoUrl);
+                updateStats(result.stats || {
+                    commits_count: 0,
+                    prs_count: 0,
+                    functions_count: 0
+                });
+
+                addMessage(`✅ Repository analyzed successfully! Found ${result.stats.commits_count} commits, ${result.stats.prs_count} PRs, and ${result.stats.functions_count} functions.`, 'system');
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                addMessage(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function queryRepository(question) {
+            showTyping(true);
+
+            try {
+                // Add repository context to the question
+                const contextualQuestion = `I'm asking about the GitHub repository: ${currentRepoUrl}\n\nQuestion: ${question}`;
+
+                const response = await fetch(`${API_BASE_URL}/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'ask',
+                        text: question,
+                        repo_url: currentRepoUrl
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Query failed: ${response.status} ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('Ask result:', result);
+                addMessage(result.answer || 'No response received', 'assistant');
+
+            } catch (error) {
+                console.error('Query error:', error);
+                addMessage(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                showTyping(false);
+            }
+        }
+
+        async function handleSend() {
+            const input = document.getElementById('inputField');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            addMessage(message, 'user');
+            input.value = '';
+            input.style.height = 'auto';
+
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+
+            try {
+                if (isValidGitHubUrl(message)) {
+                    await analyzeRepository(message);
+                } else if (isAnalyzed) {
+                    await queryRepository(message);
+                } else {
+                    addMessage('⚠️ Please analyze a GitHub repository first before asking questions.', 'error');
+                }
+            } finally {
+                sendButton.disabled = false;
+                input.focus();
+            }
+        }
+
+        function useExample(url) {
+            document.getElementById('inputField').value = url;
+            handleSend();
+        }
+
+        function startNewAnalysis() {
+            if (confirm('Start a new analysis? This will clear the current conversation.')) {
+                location.reload();
+            }
+        }
+
+        function scrollToBottom() {
+            const container = document.getElementById('messagesContainer');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        const originalAddMessage = addMessage;
+        addMessage = function(content, type = 'assistant') {
+            originalAddMessage(content, type);
+            scrollToBottom();
+        };
+
+
+        document.getElementById('sendButton').disabled = false;
+    </script>
+</body>
+</html>
