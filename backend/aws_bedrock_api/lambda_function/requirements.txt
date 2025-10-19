@@ -1,0 +1,7 @@
+boto3>=1.31.0
+numpy>=1.21.0
+faiss-cpu>=1.7.0
+scikit-learn>=1.0.0
+requests>=2.25.0
+tree-sitter>=0.20.0
+tree-sitter-languages>=1.0.0

@@ -1,6 +1,8 @@
-venv
-__pycache__
-frontend
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 .env
 config.py
 venv/
