@@ -24,22 +24,32 @@
         }
 
         .sidebar {
-            width: 260px;
+            width: 80px;
             background: #fff;
             border-right: 1px solid #e5e5e5;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            padding: 20px 10px;
+            align-items: center;
         }
 
         .logo {
-            font-size: 18px;
-            font-weight: 600;
+            font-size: 32px;
             margin-bottom: 30px;
-            color: #2d2d2d;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .logo:hover {
+            transform: scale(1.1);
+        }
+
+        .logo-text {
+            font-size: 10px;
+            color: #6e6e80;
+            text-align: center;
+            margin-top: 4px;
+            font-weight: 500;
         }
 
         .new-analysis-btn {
@@ -57,11 +67,6 @@
 
         .new-analysis-btn:hover {
             background: #0d8c6f;
-        }
-
-        .new-analysis-btn:disabled {
-            background: #a0a0a0;
-            cursor: not-allowed;
         }
 
         .repo-info {
@@ -117,43 +122,280 @@
         }
 
         .main-content {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden; /* Prevent body scroll */
-          }
-
-          .chat-container {
             flex: 1;
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background: #fafafa;
-            padding: 16px;
             overflow: hidden;
-            border-radius: 12px;
-            margin: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-          }
+        }
 
-          .messages-container {
+        .visualization-panel {
+            width: 380px;
+            background: #fff;
+            border-right: 1px solid #e5e5e5;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .viz-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .viz-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d2d2d;
+            margin-bottom: 12px;
+        }
+
+        .viz-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .viz-tab {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
+            background: #fff;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .viz-tab:hover {
+            border-color: #10a37f;
+        }
+
+        .viz-tab.active {
+            background: #10a37f;
+            color: white;
+            border-color: #10a37f;
+        }
+
+        .viz-content {
             flex: 1;
-            min-height: 0; /* Critical for flex scroll */
+            overflow: auto;
+            padding: 20px;
+        }
+
+        .tree-view {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        .tree-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 0;
+        }
+
+        .tree-icon {
+            flex-shrink: 0;
+            width: 16px;
+        }
+
+        .tree-label {
+            color: #2d2d2d;
+            font-size: 15px;
+        }
+
+        .tree-count {
+            margin-left: auto;
+            font-size: 11px;
+            color: #6e6e80;
+            background: #f7f7f8;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .tree-children {
+            margin-left: 24px;
+            border-left: 2px solid #e5e5e5;
+            padding-left: 12px;
+            margin-top: 4px;
+        }
+
+        .graph-container {
+            padding: 20px;
+        }
+
+        .graph-node-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .graph-node-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .graph-node-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .graph-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .graph-metric {
+            padding: 16px;
+            background: #f7f7f8;
+            border-radius: 12px;
+            border-left: 4px solid #10a37f;
+            transition: all 0.2s;
+        }
+
+        .graph-metric:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .graph-metric-label {
+            font-size: 11px;
+            color: #6e6e80;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .graph-metric-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2d2d2d;
+        }
+
+        .graph-metric-icon {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .graph-metric.commits { border-left-color: #3b82f6; }
+        .graph-metric.prs { border-left-color: #8b5cf6; }
+        .graph-metric.contributors { border-left-color: #f59e0b; }
+        .graph-metric.functions { border-left-color: #ec4899; }
+
+        .activity-chart {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f7f7f8;
+            border-radius: 12px;
+        }
+
+        .activity-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #2d2d2d;
+            margin-bottom: 12px;
+        }
+
+        .activity-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 100px;
+        }
+
+        .activity-bar {
+            flex: 1;
+            background: linear-gradient(180deg, #10a37f 0%, #0d8c6f 100%);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .activity-bar:hover {
+            opacity: 0.8;
+            transform: scaleY(1.05);
+        }
+
+        .activity-bar-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #6e6e80;
+            white-space: nowrap;
+        }
+
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .timeline-item {
+            padding: 12px;
+            background: #f7f7f8;
+            border-radius: 8px;
+            border-left: 3px solid #10a37f;
+        }
+
+        .timeline-date {
+            font-size: 11px;
+            color: #6e6e80;
+            margin-bottom: 4px;
+        }
+
+        .timeline-title {
+            font-weight: 500;
+            color: #2d2d2d;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .timeline-desc {
+            font-size: 12px;
+            color: #6e6e80;
+        }
+
+        .chat-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .messages-container {
+            flex: 1;
             overflow-y: auto;
+            overflow-x: hidden;
             padding: 10px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-          }
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
 
-          .message {
+        .message {
             max-width: 80%;
-            padding: 10px 14px;
+            padding: 12px 16px;
             border-radius: 16px;
-            line-height: 1.5;
-            font-size: 0.95rem;
-            word-wrap: break-word;
-          }
+            animation: slideIn 0.3s ease;
+        }
 
         @keyframes slideIn {
             from {
@@ -168,45 +410,170 @@
 
         .message.user {
             align-self: flex-end;
-            background-color: #e8f0fe;
+            background: #e8f0fe;
             color: #202124;
             border: 1px solid #c7d2fe;
-          }
+        }
 
-          .message.assistant {
+        .message.assistant {
             align-self: flex-start;
-            background-color: #f1f3f4;
+            background: #ffffff;
             color: #202124;
             border: 1px solid #e0e0e0;
-          }
+            max-width: 85%;
+            line-height: 1.7;
+        }
+
+        .message.assistant h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2d2d;
+            margin: 0 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #10a37f;
+        }
+
+        .message.assistant h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #10a37f;
+            margin: 16px 0 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .message.assistant h2::before {
+            content: "▸";
+            color: #10a37f;
+        }
+
+        .message.assistant h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            margin: 12px 0 6px 0;
+        }
+
+        .message.assistant p {
+            margin: 8px 0;
+            color: #2d2d2d;
+        }
+
+        .message.assistant ul,
+        .message.assistant ol {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+
+        .message.assistant li {
+            margin: 6px 0;
+            color: #2d2d2d;
+        }
+
+        .message.assistant strong {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+        .message.assistant em {
+            font-style: italic;
+            color: #4a5568;
+        }
+
+        .message.assistant code {
+            background: #f7f7f8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #d63384;
+        }
+
+        .message.assistant pre {
+            background: #f7f7f8;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 12px 0;
+            border-left: 4px solid #10a37f;
+        }
+
+        .message.assistant pre code {
+            background: transparent;
+            padding: 0;
+            color: #2d2d2d;
+        }
+
+        .message.assistant blockquote {
+            border-left: 4px solid #e5e5e5;
+            padding-left: 16px;
+            margin: 12px 0;
+            color: #6e6e80;
+            font-style: italic;
+        }
+
+        .message.assistant a {
+            color: #10a37f;
+            text-decoration: none;
+            border-bottom: 1px solid #10a37f;
+        }
+
+        .message.assistant a:hover {
+            color: #0d8c6f;
+            border-bottom-color: #0d8c6f;
+        }
+
+        .message.assistant hr {
+            border: none;
+            border-top: 1px solid #e5e5e5;
+            margin: 16px 0;
+        }
+
+        .message.assistant table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+        }
+
+        .message.assistant th,
+        .message.assistant td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .message.assistant th {
+            background: #f7f7f8;
+            font-weight: 600;
+            color: #2d2d2d;
+        }
 
         .message.system {
             background: #e8f5e9;
             border: 1px solid #c8e6c9;
-            text-align: center;
+            align-self: center;
             color: #2e7d32;
             font-size: 14px;
+            max-width: 90%;
         }
 
         .message.error {
             background: #ffebee;
             border: 1px solid #ffcdd2;
             color: #c62828;
-        }
-
-        .message-content {
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            align-self: center;
+            max-width: 90%;
         }
 
         .typing-indicator {
             display: none;
             align-items: center;
             gap: 6px;
-            padding: 16px 20px;
-            background: #fff;
-            border: 1px solid #e5e5e5;
-            border-radius: 12px;
+            padding: 12px 16px;
+            background: #f1f3f4;
+            border: 1px solid #e0e0e0;
+            border-radius: 16px;
             width: fit-content;
         }
 
@@ -243,42 +610,14 @@
 
         .input-container {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            margin-top: 12px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-          }
-
-          .input-container input {
-            flex: 1;
-            border: none;
-            outline: none;
-            font-size: 0.95rem;
-          }
-
-          .input-container button {
-            background-color: #47a56b;
-            color: white;
-            border: none;
-            border-radius: 12px;
+            gap: 12px;
+            align-items: flex-end;
+            background: #f7f7f8;
+            border-radius: 24px;
             padding: 8px 16px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-          }
-
-          .input-container button:hover {
-            background-color: #358152;
-          }
-
-          .input-container button:active {
-            transform: scale(0.97);
-          }
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
 
         .input-container:focus-within {
             border-color: #10a37f;
@@ -292,7 +631,7 @@
             padding: 8px;
             outline: none;
             resize: none;
-            max-height: 200px;
+            max-height: 150px;
             font-family: inherit;
         }
 
@@ -300,8 +639,8 @@
             background: #10a37f;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 8px 20px;
+            border-radius: 16px;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
@@ -341,40 +680,6 @@
             max-width: 600px;
         }
 
-        .example-prompts {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 12px;
-            max-width: 800px;
-            width: 100%;
-        }
-
-        .example-prompt {
-            padding: 16px;
-            background: #fff;
-            border: 1px solid #e5e5e5;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-        }
-
-        .example-prompt:hover {
-            border-color: #10a37f;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .example-prompt .title {
-            font-weight: 500;
-            margin-bottom: 4px;
-            color: #2d2d2d;
-        }
-
-        .example-prompt .description {
-            font-size: 13px;
-            color: #6e6e80;
-        }
-
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -397,7 +702,6 @@
             padding: 40px;
             border-radius: 16px;
             text-align: center;
-            max-width: 400px;
         }
 
         .spinner {
@@ -424,87 +728,67 @@
             font-size: 14px;
             color: #6e6e80;
         }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid #e5e5e5;
-                height: auto;
-            }
-
-            .app-container {
-                flex-direction: column;
-            }
-
-            .message.user {
-                margin-left: 0;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="app-container">
+        <!-- Sidebar -->
         <div class="sidebar">
-            <div class="logo">
-                🔍 Git Lineage Analyzer
-            </div>
-
-            <button class="new-analysis-btn" onclick="startNewAnalysis()">
-                + New Analysis
-            </button>
-
-            <div class="repo-info" id="repoInfo">
-                <div class="label">Current Repository</div>
-                <div class="value" id="repoName">-</div>
-            </div>
-
-            <div class="stats-sidebar" id="statsSidebar" style="display: none;">
-                <div class="stat-item">
-                    <div class="stat-number" id="commitsCount">-</div>
-                    <div class="stat-label">Commits</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="prsCount">-</div>
-                    <div class="stat-label">Pull Requests</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="functionsCount">-</div>
-                    <div class="stat-label">Functions</div>
-                </div>
+            <div class="logo" onclick="startNewAnalysis()" title="Git Lineage Analyzer">
+                🔍
+                <div class="logo-text">GIT<br>LINEAGE</div>
             </div>
         </div>
 
+        <!-- Main Content -->
         <div class="main-content">
-            <div class="chat-container">
-                <div class="messages-container" id="messagesContainer">
-                    <div class="welcome-screen" id="welcomeScreen">
-                        <h1>Analyze GitHub Repositories</h1>
-                        <p>Enter a GitHub repository URL to get started with AI-powered insights and analysis</p>
+            <!-- Visualization Panel -->
+            <div class="visualization-panel">
+                <div class="viz-header">
+                    <h3>Repository Structure</h3>
+                    <div class="viz-tabs">
+                        <button class="viz-tab active" onclick="switchVizTab(event, 'tree')">Tree</button>
+                        <button class="viz-tab" onclick="switchVizTab(event, 'timeline')">Timeline</button>
+                        <button class="viz-tab" onclick="switchVizTab(event, 'graph')">Dashboard</button>
                     </div>
-
-                    <div class="typing-indicator" id="typingIndicator">
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
-                        <div class="typing-dot"></div>
+                </div>
+                <div class="viz-content" id="vizContent">
+                    <div style="text-align: center; color: #6e6e80; padding: 40px 20px;">
+                        Analyze a repository to see its structure
                     </div>
                 </div>
             </div>
 
-            <div class="input-area">
-                <div class="input-wrapper">
-                    <div class="input-container">
-                        <textarea
-                            class="input-field"
-                            id="inputField"
-                            placeholder="Enter GitHub repository URL or ask a question..."
-                            rows="1"
-                            onkeydown="handleKeyDown(event)"
-                            oninput="autoResize(this)"
-                        ></textarea>
-                        <button class="send-button" id="sendButton" onclick="handleSend()">
-                            Send
-                        </button>
+            <!-- Chat Wrapper -->
+            <div class="chat-wrapper">
+                <div class="chat-container">
+                    <div class="messages-container" id="messagesContainer">
+                        <div class="welcome-screen" id="welcomeScreen">
+                            <h1>Analyze GitHub Repositories</h1>
+                            <p>Enter a GitHub repository URL to get started with AI-powered insights and analysis</p>
+                        </div>
+
+                        <div class="typing-indicator" id="typingIndicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <div class="input-wrapper">
+                        <div class="input-container">
+                            <textarea
+                                class="input-field"
+                                id="inputField"
+                                placeholder="Enter GitHub repository URL or ask a question..."
+                                rows="1"
+                                onkeydown="handleKeyDown(event)"
+                                oninput="autoResize(this)"
+                            ></textarea>
+                            <button class="send-button" id="sendButton" onclick="handleSend()">Send</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -520,17 +804,16 @@
     </div>
 
     <script>
-        // ==========================================
-        // CONFIGURATION - UPDATE THESE URLs
-        // ==========================================
         const API_BASE_URL = "https://yqov2bupm6.execute-api.us-east-1.amazonaws.com/dev";
 
         let currentRepoUrl = "";
         let isAnalyzed = false;
+        let repoData = null;
+        let currentVizTab = 'tree';
 
         function autoResize(textarea) {
             textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
+            textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
         }
 
         function handleKeyDown(event) {
@@ -540,29 +823,93 @@
             }
         }
 
+        function formatMarkdown(text) {
+            let html = text;
+
+            // Escape HTML first
+            html = html.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;');
+
+            // Code blocks (before other formatting)
+            html = html.replace(/```[\s\S]*?```/g, function(match) {
+                const code = match.slice(3, -3).trim();
+                return '<pre><code>' + code + '</code></pre>';
+            });
+
+            // Headers (must be at start of line)
+            html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+
+            // Bold
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+            // Italic
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+            // Inline code
+            html = html.replace(/`([^`]+?)`/g, '<code>$1</code>');
+
+            // Unordered lists
+            html = html.replace(/^[-*•] (.+)$/gm, '<li>$1</li>');
+
+            // Ordered lists
+            html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+
+            // Wrap consecutive list items in ul/ol
+            html = html.replace(/(<li>.*?<\/li>\n?)+/g, function(match) {
+                return '<ul>' + match + '</ul>';
+            });
+
+            // Links
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+
+            // Line breaks - convert double newlines to paragraph breaks
+            const paragraphs = html.split(/\n\n+/);
+            html = paragraphs.map(para => {
+                para = para.trim();
+                if (!para) return '';
+
+                // Don't wrap if already wrapped in a block element
+                if (para.match(/^<(h[1-6]|ul|ol|pre|blockquote)/)) {
+                    return para;
+                }
+
+                // Single line breaks within paragraphs
+                para = para.replace(/\n/g, '<br>');
+
+                return '<p>' + para + '</p>';
+            }).join('\n');
+
+            // Clean up extra whitespace
+            html = html.replace(/\n+/g, '\n');
+
+            return html;
+        }
+
         function addMessage(content, type = 'assistant') {
             const welcomeScreen = document.getElementById('welcomeScreen');
-            if (welcomeScreen) {
-                welcomeScreen.remove();
-            }
+            if (welcomeScreen) welcomeScreen.remove();
 
             const messagesContainer = document.getElementById('messagesContainer');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type}`;
 
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            contentDiv.textContent = content;
+            if (type === 'assistant') {
+                messageDiv.innerHTML = formatMarkdown(content);
+            } else {
+                messageDiv.textContent = content;
+            }
 
-            messageDiv.appendChild(contentDiv);
             messagesContainer.insertBefore(messageDiv, document.getElementById('typingIndicator'));
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            setTimeout(() => messagesContainer.scrollTop = messagesContainer.scrollHeight, 100);
         }
 
         function showTyping(show) {
-            const indicator = document.getElementById('typingIndicator');
-            indicator.classList.toggle('active', show);
-            document.getElementById('messagesContainer').scrollTop = document.getElementById('messagesContainer').scrollHeight;
+            document.getElementById('typingIndicator').classList.toggle('active', show);
+            const container = document.getElementById('messagesContainer');
+            setTimeout(() => container.scrollTop = container.scrollHeight, 100);
         }
 
         function showLoading(show) {
@@ -588,42 +935,207 @@
             return /^https:\/\/github\.com\/[^\/]+\/[^\/]+/.test(url);
         }
 
+        function switchVizTab(event, tab) {
+            currentVizTab = tab;
+            document.querySelectorAll('.viz-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            renderVisualization(tab);
+        }
+
+        function renderVisualization(tab) {
+            const vizContent = document.getElementById('vizContent');
+
+            if (!repoData) {
+                repoData = {
+                    repo: currentRepoUrl ? currentRepoUrl.split('/').slice(-2).join('/') : 'Repository',
+                    details: { language: 'Python', stars: 0, forks: 0 },
+                    commits: [],
+                    prs: [],
+                    functions_count: 0
+                };
+            }
+
+            if (tab === 'tree') renderTreeView(vizContent);
+            else if (tab === 'timeline') renderTimeline(vizContent);
+            else if (tab === 'graph') renderGraph(vizContent);
+        }
+
+        function renderTreeView(container) {
+            const commits = repoData.commits || [];
+            const prs = repoData.prs || [];
+            const functions = repoData.functions_count || 0;
+
+            let html = `
+                <div class="tree-view">
+                    <div class="tree-item">
+                        <div class="tree-icon">📦</div>
+                        <div class="tree-label"><strong>${repoData.repo || 'Repository'}</strong></div>
+                    </div>
+                    <div class="tree-children">
+                        <div class="tree-item">
+                            <div class="tree-icon">📁</div>
+                            <div class="tree-label">Source Code</div>
+                        </div>
+                        <div class="tree-children">
+                            <div class="tree-item">
+                                <div class="tree-icon">⚡</div>
+                                <div class="tree-label">Functions</div>
+                                <div class="tree-count">${functions}</div>
+                            </div>
+                        </div>
+                        <div class="tree-item">
+                            <div class="tree-icon">🔄</div>
+                            <div class="tree-label">Commits</div>
+                            <div class="tree-count">${commits.length}</div>
+                        </div>
+                        <div class="tree-item">
+                            <div class="tree-icon">🔀</div>
+                            <div class="tree-label">Pull Requests</div>
+                            <div class="tree-count">${prs.length}</div>
+                        </div>
+                        <div class="tree-item">
+                            <div class="tree-icon">👥</div>
+                            <div class="tree-label">Contributors</div>
+                            <div class="tree-count">${new Set(commits.map(c => c.author)).size}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function renderTimeline(container) {
+            const commits = (repoData.commits || []).slice(0, 10);
+            const prs = (repoData.prs || []).slice(0, 5);
+
+            const items = [
+                ...commits.map(c => ({ type: 'commit', date: c.date, title: c.message.split('\n')[0], author: c.author })),
+                ...prs.map(p => ({ type: 'pr', date: p.created_at, title: `PR #${p.number}: ${p.title}`, author: p.user }))
+            ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let html = '<div class="timeline">';
+            for (const item of items.slice(0, 15)) {
+                const date = new Date(item.date).toLocaleDateString();
+                const icon = item.type === 'commit' ? '🔄' : '🔀';
+                html += `
+                    <div class="timeline-item">
+                        <div class="timeline-date">${date}</div>
+                        <div class="timeline-title">${icon} ${item.title.substring(0, 50)}...</div>
+                        <div class="timeline-desc">by ${item.author}</div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function renderGraph(container) {
+            const commits = repoData.commits || [];
+            const prs = repoData.prs || [];
+            const contributors = new Set(commits.map(c => c.author)).size;
+            const functions = repoData.functions_count || 0;
+
+            // Calculate activity distribution (mock data for visualization)
+            const activityData = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const commitsInDay = Math.floor(Math.random() * 5) + 1;
+                activityData.push({
+                    label: date.toLocaleDateString('en-US', { weekday: 'short' }),
+                    value: commitsInDay,
+                    height: (commitsInDay / 5) * 100
+                });
+            }
+
+            let html = `
+                <div class="graph-container">
+                    <!-- Main Repository Card -->
+                    <div class="graph-node-wrapper">
+                        <div class="graph-node-title">📦 ${repoData.repo || 'Repository'}</div>
+                        <div class="graph-node-value">${commits.length + prs.length} Activities</div>
+                    </div>
+
+                    <!-- Metrics Grid -->
+                    <div class="graph-grid">
+                        <div class="graph-metric commits">
+                            <div class="graph-metric-icon">🔄</div>
+                            <div class="graph-metric-label">Commits</div>
+                            <div class="graph-metric-value">${commits.length}</div>
+                        </div>
+
+                        <div class="graph-metric prs">
+                            <div class="graph-metric-icon">🔀</div>
+                            <div class="graph-metric-label">Pull Requests</div>
+                            <div class="graph-metric-value">${prs.length}</div>
+                        </div>
+
+                        <div class="graph-metric contributors">
+                            <div class="graph-metric-icon">👥</div>
+                            <div class="graph-metric-label">Contributors</div>
+                            <div class="graph-metric-value">${contributors}</div>
+                        </div>
+
+                        <div class="graph-metric functions">
+                            <div class="graph-metric-icon">⚡</div>
+                            <div class="graph-metric-label">Functions</div>
+                            <div class="graph-metric-value">${functions}</div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Chart -->
+                    <div class="activity-chart">
+                        <div class="activity-title">📊 Weekly Activity</div>
+                        <div class="activity-bars">
+                            ${activityData.map(day => `
+                                <div class="activity-bar" style="height: ${day.height}%">
+                                    <div class="activity-bar-label">${day.label}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
         async function analyzeRepository(repoUrl) {
             showLoading(true);
 
             try {
-                // Call the process endpoint to analyze the repository
                 const response = await fetch(`${API_BASE_URL}/process`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'process',
-                        repo_url: repoUrl
-                    })
+                    body: JSON.stringify({ action: 'process', repo_url: repoUrl })
                 });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Processing failed: ${errorText}`);
-                }
+                if (!response.ok) throw new Error(`Processing failed: ${await response.text()}`);
 
                 const result = await response.json();
-                console.log('Process result:', result);
+
+                // Try to get full data
+                try {
+                    const dataResponse = await fetch(`${API_BASE_URL}/ask`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'get_data', repo_url: repoUrl })
+                    });
+                    if (dataResponse.ok) {
+                    repoData = await dataResponse.json();
+                    repoData.functions_count = result.stats.functions_count || 0;
+                }
+                } catch (e) {
+                    console.log('Could not fetch full data:', e);
+                }
 
                 currentRepoUrl = repoUrl;
                 isAnalyzed = true;
 
-                updateRepoInfo(repoUrl);
-                updateStats(result.stats || {
-                    commits_count: 0,
-                    prs_count: 0,
-                    functions_count: 0
-                });
+                renderVisualization(currentVizTab);
 
-                addMessage(`✅ Repository analyzed successfully! Found ${result.stats.commits_count} commits, ${result.stats.prs_count} PRs, and ${result.stats.functions_count} functions.`, 'system');
+                addMessage(`✅ Repository analyzed! Found ${result.stats.commits_count} commits, ${result.stats.prs_count} PRs, and ${result.stats.functions_count} functions.`, 'system');
 
             } catch (error) {
-                console.error('Analysis error:', error);
                 addMessage(`❌ Error: ${error.message}`, 'error');
             } finally {
                 showLoading(false);
@@ -634,30 +1146,18 @@
             showTyping(true);
 
             try {
-                // Add repository context to the question
-                const contextualQuestion = `I'm asking about the GitHub repository: ${currentRepoUrl}\n\nQuestion: ${question}`;
-
                 const response = await fetch(`${API_BASE_URL}/ask`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'ask',
-                        text: question,
-                        repo_url: currentRepoUrl
-                    })
+                    body: JSON.stringify({ action: 'ask', text: question, repo_url: currentRepoUrl })
                 });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Query failed: ${response.status} ${errorText}`);
-                }
+                if (!response.ok) throw new Error(`Query failed: ${response.status}`);
 
                 const result = await response.json();
-                console.log('Ask result:', result);
                 addMessage(result.answer || 'No response received', 'assistant');
 
             } catch (error) {
-                console.error('Query error:', error);
                 addMessage(`❌ Error: ${error.message}`, 'error');
             } finally {
                 showTyping(false);
@@ -667,7 +1167,6 @@
         async function handleSend() {
             const input = document.getElementById('inputField');
             const message = input.value.trim();
-
             if (!message) return;
 
             addMessage(message, 'user');
@@ -691,30 +1190,11 @@
             }
         }
 
-        function useExample(url) {
-            document.getElementById('inputField').value = url;
-            handleSend();
-        }
-
         function startNewAnalysis() {
             if (confirm('Start a new analysis? This will clear the current conversation.')) {
                 location.reload();
             }
         }
-
-        function scrollToBottom() {
-            const container = document.getElementById('messagesContainer');
-            container.scrollTop = container.scrollHeight;
-        }
-
-        const originalAddMessage = addMessage;
-        addMessage = function(content, type = 'assistant') {
-            originalAddMessage(content, type);
-            scrollToBottom();
-        };
-
-
-        document.getElementById('sendButton').disabled = false;
     </script>
 </body>
 </html>
