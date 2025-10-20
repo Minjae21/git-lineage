@@ -3,8 +3,8 @@
 ## Description
 This is a chatbot that leverages knowledge about a repository's commit history to better answer user queries.
 
-## Demo Link
-todo
+## Project Link
+https://zkhan04.github.io/git-lineage/
 
 ## Architecture
 SQL Database: stores information about the codebase, including commits, files, and parsed symbols.
